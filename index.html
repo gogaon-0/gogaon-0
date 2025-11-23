@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; min-height: 100vh; }
+        .login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .login-box { max-width: 450px; width: 100%; text-align: center; }
+        .login-icon { width: 80px; height: 80px; background: #5865F2; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 40px; }
+        .login-card { background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; }
+        .discord-btn { width: 100%; background: #5865F2; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .discord-btn:hover { background: #4752C4; transform: scale(1.05); }
+        .server-select-container { display: none; }
+        .navbar { background: rgba(30, 30, 30, 0.95); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: bold; }
+        .nav-icon { width: 40px; height: 40px; background: #5865F2; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logout-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .logout-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .content { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+        .page-header { margin-bottom: 40px; }
+        .page-title { font-size: 36px; font-weight: bold; margin-bottom: 10px; }
+        .page-subtitle { color: #b9bbbe; font-size: 16px; }
+        .server-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .server-card { background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 30px; cursor: pointer; transition: all 0.3s; }
+        .server-card:hover { border-color: #5865F2; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3); }
+        .server-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .server-icon { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .server-info h3 { font-size: 20px; margin-bottom: 5px; }
+        .online-badge { display: flex; align-items: center; gap: 5px; color: #43b581; font-size: 14px; }
+        .online-dot { width: 8px; height: 8px; background: #43b581; border-radius: 50%; }
+        .server-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .dashboard-container { display: none; }
+        .dashboard-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: rgba(30, 30, 30, 0.95); border-right: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .selected-server { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .selected-server-icon { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .change-server-btn { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .sidebar-menu { flex: 1; padding: 20px; overflow-y: auto; }
+        .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; color: #b9bbbe; cursor: pointer; transition: all 0.3s; position: relative; }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.05); color: white; }
+        .menu-item.active { background: #5865F2; color: white; }
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .main-content { flex: 1; overflow-y: auto; background: #1a1a2e; }
+        .content-area { padding: 40px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 25px; transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-value { font-size: 32px; font-weight: bold; margin: 10px 0; }
+        .stat-label { color: #b9bbbe; font-size: 14px; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .chart-card { background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 25px; }
+        .chart-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+        .settings-section { display: none; }
+        .settings-section.active { display: block; }
+        .setting-card { background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+        .setting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .setting-info h3 { font-size: 18px; margin-bottom: 5px; }
+        .setting-info p { color: #b9bbbe; font-size: 14px; }
+        .toggle-switch { position: relative; width: 50px; height: 26px; background: #4e5058; border-radius: 13px; cursor: pointer; transition: all 0.3s; }
+        .toggle-switch.active { background: #43b581; }
+        .toggle-slider { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.3s; }
+        .toggle-switch.active .toggle-slider { transform: translateX(24px); }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; color: #b9bbbe; font-size: 14px; font-weight: 600; }
+        .form-select { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px 15px; color: white; font-size: 14px; }
+        .slider-container { margin: 20px 0; }
+        .slider { width: 100%; }
+        .slider-labels { display: flex; justify-content: space-between; margin-top: 8px; color: #b9bbbe; font-size: 12px; }
+        .slider-value { color: #5865F2; font-weight: bold; }
+        .save-btn { background: #5865F2; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .save-btn:hover { background: #4752C4; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-icon">⚡</div>
+            <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 10px;">Discord Bot</h1>
+            <p style="color: #b9bbbe; margin-bottom: 30px;">올인원 봇 관리 대시보드</p>
+            <div class="login-card">
+                <h2 style="font-size: 24px; margin-bottom: 30px;">로그인</h2>
+                <button class="discord-btn" onclick="doLogin()">Discord로 로그인</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="server-select-container" id="serverSelectPage">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="nav-icon">⚡</div>
+                <span>Discord Bot Dashboard</span>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </nav>
+        <div class="content">
+            <div class="page-header">
+                <h1 class="page-title">서버 선택</h1>
+                <p class="page-subtitle">관리할 서버를 선택하세요</p>
+            </div>
+            <div class="server-grid" id="serverGrid"></div>
+        </div>
+    </div>
+
+    <div class="dashboard-container" id="dashboardPage">
+        <div class="dashboard-layout">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="selected-server">
+                        <div class="selected-server-icon" id="selectedServerIcon">💻</div>
+                        <div>
+                            <h3 id="selectedServerName" style="font-size: 16px;">서버</h3>
+                            <p id="selectedServerMembers" style="font-size: 12px; color: #b9bbbe;">0</p>
+                        </div>
+                    </div>
+                    <button class="change-server-btn" onclick="goBackToServerSelect()">서버 변경</button>
+                </div>
+                <div class="sidebar-menu">
+                    <div class="menu-item active" onclick="changeSection('dashboard')">
+                        <span>🏠</span>
+                        <span>대시보드</span>
+                    </div>
+                    <div class="menu-item" onclick="changeSection('welcome')">
+                        <span>💬</span>
+                        <span>환영 메시지</span>
+                    </div>
+                    <div class="menu-item" onclick="changeSection('moderation')">
+                        <span>🛡️</span>
+                        <span>모더레이션</span>
+                    </div>
+                    <div class="menu-item" onclick="changeSection('music')">
+                        <span>🎵</span>
+                        <span>음악</span>
+                    </div>
+                </div>
+                <div class="sidebar-footer">
+                    <button class="logout-btn" style="width: 100%;" onclick="doLogout()">로그아웃</button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="content-area">
+                    <div class="settings-section active" id="sectionDashboard">
+                        <div class="page-header">
+                            <h1 class="page-title">대시보드</h1>
+                            <p class="page-subtitle">서버 통계</p>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div style="font-size: 24px;">👥</div>
+                                <div class="stat-value" id="totalMembers">1,234</div>
+                                <div class="stat-label">총 멤버</div>
+                            </div>
+                            <div class="stat-card">
+                                <div style="font-size: 24px;">⚡</div>
+                                <div class="stat-value" id="onlineMembers">456</div>
+                                <div class="stat-label">온라인</div>
+                            </div>
+                            <div class="stat-card">
+                                <div style="font-size: 24px;">💬</div>
+                                <div class="stat-value">4,321</div>
+                                <div class="stat-label">메시지</div>
+                            </div>
+                            <div class="stat-card">
+                                <div style="font-size: 24px;">⚙️</div>
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">명령어</div>
+                            </div>
+                        </div>
+                        <div class="chart-grid">
+                            <div class="chart-card">
+                                <h3 class="chart-title">메시지 통계</h3>
+                                <canvas id="chart1"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h3 class="chart-title">멤버 성장</h3>
+                                <canvas id="chart2"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section" id="sectionWelcome">
+                        <div class="page-header">
+                            <h1 class="page-title">환영 메시지</h1>
+                            <p class="page-subtitle">새 멤버 환영</p>
+                        </div>
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-info">
+                                    <h3>환영 메시지</h3>
+                                    <p>새 멤버 환영</p>
+                                </div>
+                                <div class="toggle-switch active" onclick="doToggleSwitch(this)">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">채널</label>
+                                <select class="form-select">
+                                    <option>#welcome</option>
+                                </select>
+                            </div>
+                            <button class="save-btn" onclick="doSaveSettings()">저장</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section" id="sectionModeration">
+                        <div class="page-header">
+                            <h1 class="page-title">모더레이션</h1>
+                            <p class="page-subtitle">서버 관리</p>
+                        </div>
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-info">
+                                    <h3>자동 모더레이션</h3>
+                                    <p>스팸 차단</p>
+                                </div>
+                                <div class="toggle-switch active" onclick="doToggleSwitch(this)">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="save-btn" onclick="doSaveSettings()">저장</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section" id="sectionMusic">
+                        <div class="page-header">
+                            <h1 class="page-title">음악 설정</h1>
+                            <p class="page-subtitle">음악 봇</p>
+                        </div>
+                        <div class="setting-card">
+                            <div class="slider-container">
+                                <label class="form-label">볼륨</label>
+                                <input type="range" class="slider" min="0" max="100" value="75" oninput="doUpdateSlider(this)">
+                                <div class="slider-labels">
+                                    <span>0%</span>
+                                    <span class="slider-value" id="volumeValue">75%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                            <button class="save-btn" onclick="doSaveSettings()">저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var serverList = [
+            {id: 1, name: '코딩 커뮤니티', icon: '💻', members: 1234, online: 456},
+            {id: 2, name: '게이밍 클랜', icon: '🎮', members: 892, online: 234},
+            {id: 3, name: '음악방', icon: '🎵', members: 567, online: 123}
+        ];
+        var currentSrv = null;
+        var myChart1 = null;
+        var myChart2 = null;
+
+        function doLogin() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('serverSelectPage').style.display = 'block';
+            loadServerList();
+        }
+
+        function doLogout() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('serverSelectPage').style.display = 'none';
+            document.getElementById('dashboardPage').style.display = 'none';
+        }
+
+        function loadServerList() {
+            var grid = document.getElementById('serverGrid');
+            grid.innerHTML = '';
+            for (var i = 0; i < serverList.length; i++) {
+                var srv = serverList[i];
+                var card = document.createElement('div');
+                card.className = 'server-card';
+                card.setAttribute('data-id', srv.id);
+                card.onclick = function() {
+                    var sid = parseInt(this.getAttribute('data-id'));
+                    for (var j = 0; j < serverList.length; j++) {
+                        if (serverList[j].id === sid) {
+                            pickServer(serverList[j]);
+                            break;
+                        }
+                    }
+                };
+                var html = '<div class="server-header">';
+                html += '<div class="server-icon">' + srv.icon + '</div>';
+                html += '<div class="server-info">';
+                html += '<h3>' + srv.name + '</h3>';
+                html += '<div class="online-badge">';
+                html += '<div class="online-dot"></div>';
+                html += '<span>' + srv.online + ' 온라인</span>';
+                html += '</div></div></div>';
+                html += '<div class="server-footer"><span>' + srv.members + ' 멤버</span></div>';
+                card.innerHTML = html;
+                grid.appendChild(card);
+            }
+        }
+
+        function pickServer(srv) {
+            currentSrv = srv;
+            document.getElementById('serverSelectPage').style.display = 'none';
+            document.getElementById('dashboardPage').style.display = 'block';
+            document.getElementById('selectedServerIcon').textContent = srv.icon;
+            document.getElementById('selectedServerName').textContent = srv.name;
+            document.getElementById('selectedServerMembers').textContent = srv.members + ' 멤버';
+            document.getElementById('totalMembers').textContent = srv.members;
+            document.getElementById('onlineMembers').textContent = srv.online;
+            makeCharts();
+        }
+
+        function goBackToServerSelect() {
+            document.getElementById('dashboardPage').style.display = 'none';
+            document.getElementById('serverSelectPage').style.display = 'block';
+        }
+
+        function changeSection(sname) {
+            var sections = document.querySelectorAll('.settings-section');
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].classList.remove('active');
+            }
+            var items = document.querySelectorAll('.menu-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.remove('active');
+            }
+            var secId = 'section' + sname.charAt(0).toUpperCase() + sname.slice(1);
+            document.getElementById(secId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function doToggleSwitch(el) {
+            el.classList.toggle('active');
+        }
+
+        function doUpdateSlider(el) {
+            document.getElementById('volumeValue').textContent = el.value + '%';
+        }
+
+        function doSaveSettings() {
+            alert('저장되었습니다!');
+        }
+
+        function makeCharts() {
+            var ctx1 = document.getElementById('chart1');
+            var ctx2 = document.getElementById('chart2');
+            if (myChart1) {
+                myChart1.destroy();
+            }
+            if (myChart2) {
+                myChart2.destroy();
+            }
+            myChart1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['월', '화', '수', '목', '금', '토', '일'],
+                    datasets: [{
+                        label: '메시지',
+                        data: [2400, 1398, 9800, 3908, 4800, 3800, 4300],
+                        backgroundColor: '#5865F2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            myChart2 = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['월', '화', '수', '목', '금', '토', '일'],
+                    datasets: [{
+                        label: '멤버',
+                        data: [120, 135, 150, 148, 165, 170, 175],
+                        borderColor: '#43b581',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
