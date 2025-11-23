@@ -99,6 +99,29 @@ function getCodeFromUrl() {
     return params.get('code');
 }
 
+function inviteBot() {
+    const params = new URLSearchParams({
+        client_id: CONFIG.CLIENT_ID,
+        scope: 'bot applications.commands',
+        permissions: '8',
+        response_type: 'code'
+    });
+    window.open(`https://discord.com/api/oauth2/authorize?${params}`, '_blank');
+}
+
+function sendTestWelcome() {
+    if (!currentSettings || !currentSettings.welcome) {
+        alert('환영 메시지 설정이 필요합니다');
+        return;
+    }
+    const ch = currentSettings.welcome.channel_id;
+    if (!ch) {
+        alert('환영 채널을 먼저 지정하세요');
+        return;
+    }
+    alert('새 멤버가 입장하면 환영 메시지가 전송됩니다');
+}
+
 async function exchangeCode(code) {
     const res = await fetch(`${CONFIG.API_URL}/auth/discord/callback`, {
         method: 'POST',
@@ -278,6 +301,7 @@ async function loadChannelsAndRoles(guildId) {
         const channels = await api(`/guilds/${guildId}/channels`);
         const welcomeSelect = document.getElementById('welcomeChannel');
         const logSelect = document.getElementById('logChannel');
+        const muteRoleSelect = document.getElementById('muteRole');
         
         const channelOptions = channels.map(ch => 
             `<option value="${ch.id}">${ch.name}</option>`
@@ -295,6 +319,9 @@ async function loadChannelsAndRoles(guildId) {
         ).join('');
         
         djSelect.innerHTML = '<option value="">역할을 선택하세요</option>' + roleOptions;
+        if (muteRoleSelect) {
+            muteRoleSelect.innerHTML = '<option value="">역할을 선택하세요</option>' + roleOptions;
+        }
     } catch (e) {
         console.error('Failed to load channels/roles:', e);
     }
@@ -330,6 +357,10 @@ function applySettings() {
     
     if (currentSettings.moderation.log_channel_id) {
         document.getElementById('logChannel').value = currentSettings.moderation.log_channel_id;
+    }
+    if (currentSettings.moderation.mute_role_id) {
+        const el = document.getElementById('muteRole');
+        if (el) el.value = currentSettings.moderation.mute_role_id;
     }
 
     // 음악 설정
@@ -376,11 +407,13 @@ async function saveModerationSettings() {
 
     const autoModToggle = document.getElementById('autoModToggle');
     const logChannelId = document.getElementById('logChannel').value;
+    const muteRoleId = document.getElementById('muteRole').value;
 
     currentSettings.moderation = {
         enabled: true,
         log_channel_id: logChannelId || null,
-        auto_mod: autoModToggle.classList.contains('active')
+        auto_mod: autoModToggle.classList.contains('active'),
+        mute_role_id: muteRoleId || null
     };
 
     try {
