@@ -70,7 +70,8 @@ async function connectDB() {
 // 미들웨어
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // HTML, CSS, JS 파일 서빙
+app.use(express.static(__dirname)); // 루트 폴더의 모든 파일 서빙
+app.use('/static', express.static(path.join(__dirname, 'static'))); // static 폴더
 
 // ==================== API 라우트 ====================
 
@@ -323,7 +324,7 @@ app.get('/api/lang', async (req, res) => {
 
 // 루트 경로
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // 서버 시작
