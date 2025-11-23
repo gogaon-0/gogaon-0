@@ -166,4 +166,4 @@ client.on('messageCreate', async (msg) => {
 });
 
 // 봇 로그인
-client.login(process.env.DISCORD_BOT_TOKEN);
+client.login(process.env.MTQ0MTk3NTMyMjUyNTQzNDA2MA.G_D0N-.HUVauDyexOdENPUA78uVLrfT4bzn0681YxRcsw);
