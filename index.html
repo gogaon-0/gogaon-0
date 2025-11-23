@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>디스코드 봇 대시보드</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="header">
+    <h1 class="title" id="tTitle">디스코드 봇 대시보드</h1>
+    <div class="actions">
+      <select id="langSelect">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+      </select>
+      <button id="btnRefresh">새로고침</button>
+      <button id="btnOpen">대시보드 열기</button>
+    </div>
+  </header>
+  <main class="container">
+    <section class="card">
+      <h2 id="tStatus">상태</h2>
+      <div class="grid">
+        <div class="metric"><div class="label">길드</div><div id="mGuilds" class="value">-</div></div>
+        <div class="metric"><div class="label">채널</div><div id="mChannels" class="value">-</div></div>
+        <div class="metric"><div class="label">멤버</div><div id="mMembers" class="value">-</div></div>
+        <div class="metric"><div class="label">온라인</div><div id="mOnline" class="value">-</div></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2 id="tBots">봇 관리</h2>
+      <div class="form">
+        <input id="botName" placeholder="봇 이름">
+        <input id="botPrefix" placeholder="접두사" value="!">
+        <input id="botToken" placeholder="봇 토큰">
+        <button id="btnBotStart">봇 시작</button>
+      </div>
+      <ul id="botList" class="list"></ul>
+    </section>
+    <section class="card">
+      <h2 id="tGuilds">길드 목록</h2>
+      <ul id="guildList" class="list"></ul>
+    </section>
+    <section class="card">
+      <h2 id="tAnn">공지 보내기</h2>
+      <div class="form">
+        <input id="channelId" placeholder="채널 ID" aria-label="채널 ID">
+        <input id="announceMsg" placeholder="메시지" aria-label="메시지">
+        <button id="btnAnn">보내기</button>
+        <div id="annStatus" class="status"></div>
+      </div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
