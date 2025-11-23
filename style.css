@@ -759,3 +759,37 @@ body {
         padding: 20px;
     }
 }
+.quick-actions {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0 20px 0;
+}
+
+.action-btn {
+    background: #2f3136;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: #3a3c43;
+    transform: translateY(-1px);
+}
+
+.log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log-item {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #b9bbbe;
+}
