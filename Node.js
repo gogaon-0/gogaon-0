@@ -1,174 +1,169 @@
-// server.js - Discord OAuth2 백엔드
-// npm install express cors dotenv axios express-session
+// bot.js - Discord 봇
+// npm install discord.js dotenv
 
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const session = require('express-session');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 
-const app = express();
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates
+    ]
+});
 
-// ============================================
-// 설정
-// ============================================
-const CONFIG = {
-    CLIENT_ID: process.env.DISCORD_CLIENT_ID || '1441975322525434060',
-    CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET, // .env에 설정 필수!
-    REDIRECT_URI: 'https://plugmarket.r-e.kr/',
-    API_BASE: 'https://discord.com/api/v10',
-    FRONTEND_URL: 'https://plugmarket.r-e.kr'
-};
+// API에서 서버 설정 가져오기
+const API_URL = process.env.API_URL || 'https://your-worker.workers.dev';
 
-// ============================================
-// 미들웨어
-// ============================================
-app.use(express.json());
-app.use(cors({
-    origin: CONFIG.FRONTEND_URL,
-    credentials: true
-}));
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: true, // HTTPS 필수
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7일
-    }
-}));
-
-// ============================================
-// Discord API 헬퍼
-// ============================================
-async function discordRequest(endpoint, accessToken) {
-    const res = await axios.get(`${CONFIG.API_BASE}${endpoint}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    return res.data;
-}
-
-async function exchangeCodeForToken(code) {
-    const params = new URLSearchParams({
-        client_id: CONFIG.CLIENT_ID,
-        client_secret: CONFIG.CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: CONFIG.REDIRECT_URI
-    });
-
-    const res = await axios.post(`${CONFIG.API_BASE}/oauth2/token`, params, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
-    return res.data;
-}
-
-// ============================================
-// 라우트
-// ============================================
-
-// OAuth2 콜백 - code를 토큰으로 교환
-app.post('/api/auth/discord/callback', async (req, res) => {
-    const { code } = req.body;
-
-    if (!code) {
-        return res.status(400).json({ error: 'Code is required' });
-    }
-
+async function getGuildSettings(guildId) {
     try {
-        // 1. code를 access_token으로 교환
-        const tokenData = await exchangeCodeForToken(code);
-        const accessToken = tokenData.access_token;
-
-        // 2. 사용자 정보 가져오기
-        const user = await discordRequest('/users/@me', accessToken);
-
-        // 3. 사용자의 서버 목록 가져오기
-        const guilds = await discordRequest('/users/@me/guilds', accessToken);
-
-        // 4. 세션에 저장
-        req.session.accessToken = accessToken;
-        req.session.refreshToken = tokenData.refresh_token;
-        req.session.user = user;
-        req.session.guilds = guilds;
-
-        res.json({
-            access_token: accessToken,
-            user,
-            guilds
-        });
-
-    } catch (err) {
-        console.error('OAuth Error:', err.response?.data || err.message);
-        res.status(500).json({ error: 'Authentication failed' });
+        const res = await fetch(`${API_URL}/api/guilds/${guildId}/settings`);
+        if (!res.ok) return null;
+        return res.json();
+    } catch (e) {
+        console.error('설정 로드 실패:', e);
+        return null;
     }
+}
+
+// 봇 준비 완료
+client.once('ready', () => {
+    console.log(`✅ 봇 로그인: ${client.user.tag}`);
+    console.log(`📊 ${client.guilds.cache.size}개 서버에서 활동 중`);
 });
 
-// 현재 세션 확인
-app.get('/api/auth/session', (req, res) => {
-    if (req.session.user) {
-        res.json({
-            access_token: req.session.accessToken,
-            user: req.session.user,
-            guilds: req.session.guilds
-        });
-    } else {
-        res.status(401).json({ error: 'Not authenticated' });
-    }
+// ============================================
+// 환영 메시지
+// ============================================
+client.on('guildMemberAdd', async (member) => {
+    const settings = await getGuildSettings(member.guild.id);
+    if (!settings?.welcome?.enabled) return;
+
+    const channel = member.guild.channels.cache.get(settings.welcome.channelId);
+    if (!channel) return;
+
+    // 메시지 변수 치환
+    let message = settings.welcome.message || '{user}님, 환영합니다!';
+    message = message
+        .replace(/{user}/g, member.toString())
+        .replace(/{username}/g, member.user.username)
+        .replace(/{server}/g, member.guild.name)
+        .replace(/{membercount}/g, member.guild.memberCount);
+
+    const embed = new EmbedBuilder()
+        .setColor('#5865F2')
+        .setTitle('👋 새 멤버 입장!')
+        .setDescription(message)
+        .setThumbnail(member.user.displayAvatarURL())
+        .setTimestamp();
+
+    channel.send({ embeds: [embed] });
 });
 
-// 로그아웃
-app.post('/api/auth/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
-});
+// ============================================
+// 자동 모더레이션
+// ============================================
+const spamMap = new Map(); // 스팸 감지용
 
-// 사용자 정보
-app.get('/api/user', (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-    res.json(req.session.user);
-});
+client.on('messageCreate', async (msg) => {
+    if (msg.author.bot) return;
 
-// 서버 목록
-app.get('/api/guilds', (req, res) => {
-    if (!req.session.guilds) {
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-    res.json(req.session.guilds);
-});
+    const settings = await getGuildSettings(msg.guild?.id);
+    if (!settings?.moderation?.enabled) return;
 
-// 서버 통계 (봇에서 데이터 가져와야 함)
-app.get('/api/guilds/:guildId/stats', async (req, res) => {
-    const { guildId } = req.params;
+    // 스팸 감지 (5초 내 5개 이상 메시지)
+    const key = `${msg.guild.id}-${msg.author.id}`;
+    const now = Date.now();
+    const userMsgs = spamMap.get(key) || [];
+    userMsgs.push(now);
     
-    // TODO: 실제로는 봇 API나 데이터베이스에서 통계 가져오기
-    // 예시 더미 데이터
-    res.json({
-        members: 1234,
-        online: 456,
-        channels: 32,
-        commands: 156
-    });
-});
+    // 5초 이내 메시지만 유지
+    const recent = userMsgs.filter(t => now - t < 5000);
+    spamMap.set(key, recent);
 
-// 서버 설정 저장
-app.post('/api/guilds/:guildId/settings', (req, res) => {
-    const { guildId } = req.params;
-    const settings = req.body;
+    if (recent.length >= 5) {
+        // 스팸 감지됨
+        try {
+            await msg.delete();
+            await msg.channel.send({
+                content: `⚠️ ${msg.author}, 스팸이 감지되었습니다. 천천히 보내주세요.`,
+            }).then(m => setTimeout(() => m.delete(), 5000));
 
-    // TODO: 데이터베이스에 설정 저장
-    console.log(`Saving settings for guild ${guildId}:`, settings);
+            // 로그 채널에 기록
+            if (settings.moderation.logChannelId) {
+                const logChannel = msg.guild.channels.cache.get(settings.moderation.logChannelId);
+                if (logChannel) {
+                    const logEmbed = new EmbedBuilder()
+                        .setColor('#ED4245')
+                        .setTitle('🛡️ 스팸 감지')
+                        .addFields(
+                            { name: '사용자', value: msg.author.toString(), inline: true },
+                            { name: '채널', value: msg.channel.toString(), inline: true }
+                        )
+                        .setTimestamp();
+                    logChannel.send({ embeds: [logEmbed] });
+                }
+            }
 
-    res.json({ success: true });
+            spamMap.set(key, []); // 리셋
+        } catch (e) {
+            console.error('모더레이션 오류:', e);
+        }
+    }
+
+    // 욕설 필터 (간단 예시)
+    const badWords = settings.moderation.badWords || [];
+    const hasBadWord = badWords.some(w => 
+        msg.content.toLowerCase().includes(w.toLowerCase())
+    );
+
+    if (hasBadWord) {
+        try {
+            await msg.delete();
+            await msg.channel.send({
+                content: `⚠️ ${msg.author}, 부적절한 언어가 감지되었습니다.`
+            }).then(m => setTimeout(() => m.delete(), 5000));
+        } catch (e) {
+            console.error('욕설 필터 오류:', e);
+        }
+    }
 });
 
 // ============================================
-// 서버 시작
+// 음악 기능 (기본)
 // ============================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+const queues = new Map();
+
+client.on('messageCreate', async (msg) => {
+    if (msg.author.bot || !msg.content.startsWith('!')) return;
+
+    const args = msg.content.slice(1).trim().split(/ +/);
+    const cmd = args.shift().toLowerCase();
+
+    const settings = await getGuildSettings(msg.guild?.id);
+    const volume = settings?.music?.volume || 75;
+    const djRoleId = settings?.music?.djRoleId;
+
+    // DJ 역할 체크
+    if (djRoleId && !msg.member.roles.cache.has(djRoleId)) {
+        if (['play', 'skip', 'stop', 'volume'].includes(cmd)) {
+            return msg.reply('🎵 DJ 역할이 필요합니다!');
+        }
+    }
+
+    if (cmd === 'play') {
+        if (!msg.member.voice.channel) {
+            return msg.reply('🎵 음성 채널에 먼저 입장해주세요!');
+        }
+        msg.reply(`🎵 음악 기능은 추가 라이브러리가 필요합니다. (기본 볼륨: ${volume}%)`);
+    }
+
+    if (cmd === 'volume') {
+        msg.reply(`🔊 현재 볼륨: ${volume}%`);
+    }
 });
+
+// 봇 로그인
+client.login(process.env.DISCORD_BOT_TOKEN);
