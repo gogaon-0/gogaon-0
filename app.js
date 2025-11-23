@@ -3,8 +3,8 @@
 // ============================================
 const CONFIG = {
     CLIENT_ID: '1441975322525434060',
-    REDIRECT_URI: 'https://plugmarket.r-e.kr/',
-    API_URL: 'http://localhost:3000/api',
+    REDIRECT_URI: window.location.origin + '/',
+    API_URL: '/api',
     OAUTH_URL: 'https://discord.com/oauth2/authorize'
 };
 
