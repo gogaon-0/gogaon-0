@@ -1,1 +1,314 @@
-디스코드 봇 추가
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>디스코드 봇 - 서버 관리를 더 쉽게</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --accent: #5865F2;
+            --accent-hover: #4752C4;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent: #5865F2;
+            --accent-hover: #4752C4;
+            --card-bg: #2d2d2d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px var(--shadow);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-primary);
+        }
+
+        header {
+            text-align: center;
+            padding: 80px 20px 60px;
+            background: linear-gradient(135deg, var(--accent) 0%, #7289DA 100%);
+            color: white;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        header p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .add-bot-btn {
+            display: inline-block;
+            background: white;
+            color: var(--accent);
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .add-bot-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow);
+            transition: all 0.3s ease;
+            animation: fadeIn 1s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .about-section {
+            background: var(--bg-secondary);
+            padding: 60px 40px;
+            border-radius: 20px;
+            margin-top: 40px;
+            animation: fadeIn 1.2s ease;
+        }
+
+        .about-section h2 {
+            color: var(--accent);
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .about-section p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--shadow);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            header p {
+                font-size: 1rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="테마 전환">
+        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/>
+        </svg>
+        <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/>
+        </svg>
+    </button>
+
+    <header>
+        <h1>🤖 디스코드 서버 관리 봇</h1>
+        <p>강력하고 편리한 서버 관리 기능을 지금 바로 경험하세요</p>
+        <a href="https://discord.com/oauth2/authorize?client_id=1441975322525434060&permissions=8&integration_type=0&scope=bot+applications.commands" 
+           class="add-bot-btn" target="_blank">
+           봇 추가하기
+        </a>
+    </header>
+
+    <div class="container">
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>자동 조정</h3>
+                <p>서버 규칙 위반을 자동으로 감지하고 조치합니다. 욕설 필터링, 스팸 방지, 자동 경고 시스템으로 건강한 커뮤니티를 유지하세요.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>서버 관리</h3>
+                <p>역할 관리, 채널 설정, 권한 조정을 간편하게 처리합니다. 복잡한 서버 설정도 명령어 하나로 쉽게 관리할 수 있습니다.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👋</div>
+                <h3>환영 메시지</h3>
+                <p>새로운 멤버를 자동으로 환영하고 서버 규칙을 안내합니다. 맞춤형 환영 메시지로 친근한 첫인상을 만들어보세요.</p>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h2>서버 관리 봇에 대하여</h2>
+            <p>
+                우리의 디스코드 봇은 서버 관리자들이 더 효율적으로 커뮤니티를 운영할 수 있도록 설계되었습니다. 
+                자동화된 조정 기능부터 멤버 관리, 엔터테인먼트 기능까지 모든 것을 하나의 봇으로 해결할 수 있습니다. 
+                간단한 명령어와 직관적인 인터페이스로 누구나 쉽게 사용할 수 있으며, 
+                지속적인 업데이트를 통해 새로운 기능이 추가됩니다. 
+                지금 바로 봇을 추가하고 더 나은 서버 관리 경험을 시작해보세요!
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 디스코드 서버 관리 봇. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const html = document.documentElement;
+
+        // 저장된 테마 불러오기
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateIcons(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcons(newTheme);
+        });
+
+        function updateIcons(theme) {
+            if (theme === 'dark') {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
