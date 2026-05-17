@@ -1,439 +1,152 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>디스코드 봇 - ModuCore로 서버 관리를 더 쉽게</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --accent: #5865F2;
-            --accent-hover: #4752C4;
-            --card-bg: #ffffff;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --accent: #5865F2;
-            --accent-hover: #4752C4;
-            --card-bg: #2d2d2d;
-            --shadow: rgba(0, 0, 0, 0.3);
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            line-height: 1.6;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: none;
-            padding: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 10px var(--shadow);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        .theme-toggle svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-primary);
-        }
-
-        header {
-            text-align: center;
-            padding: 80px 20px 60px;
-            background: linear-gradient(135deg, var(--accent) 0%, #7289DA 100%);
-            color: white;
-        }
-
-        header h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            animation: fadeInDown 0.8s ease;
-        }
-
-        header p {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 1s ease;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px 40px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary {
-            background: white;
-            color: var(--accent);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-
-        .feature-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px var(--shadow);
-            transition: all 0.3s ease;
-            animation: fadeIn 1s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px var(--shadow);
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-
-        .feature-card h3 {
-            color: var(--accent);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            line-height: 1.8;
-        }
-
-        .about-section {
-            background: var(--bg-secondary);
-            padding: 60px 40px;
-            border-radius: 20px;
-            margin-top: 40px;
-            animation: fadeIn 1.2s ease;
-        }
-
-        .about-section h2 {
-            color: var(--accent);
-            font-size: 2rem;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .about-section p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            line-height: 1.8;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .stats-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px var(--shadow);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--shadow);
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
-            }
-            
-            header p {
-                font-size: 1rem;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-
-            .button-group {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .btn {
-                width: 100%;
-                max-width: 300px;
-                justify-content: center;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rich Presence - YouTube Discord Status</title>
+  <meta name="description" content="YouTube에서 시청 중인 영상을 Discord 프로필에 실시간으로 표시하세요.">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" aria-label="테마 전환">
-        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/>
-        </svg>
-        <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/>
-        </svg>
-    </button>
-
-    <header>
-        <h1>🤖 ModuCore 디스코드 봇</h1>
-        <p>강력하고 편리한 서버 관리 기능을 지금 바로 경험하세요</p>
-        <div class="button-group">
-            <a href="https://discord.com/oauth2/authorize?client_id=1441975322525434060&permissions=8&integration_type=0&scope=bot+applications.commands" 
-               class="btn btn-primary" target="_blank">
-               <svg viewBox="0 0 24 24" fill="currentColor">
-                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-               </svg>
-               봇 추가하기
-            </a>
-            <a href="http://217.154.212.66:9254" class="btn btn-secondary">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-                </svg>
-                서버 설정하기
-            </a>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="stats-section">
-            <div class="stat-card">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">안정적인 운영</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">99.9%</div>
-                <div class="stat-label">가동률</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">⚡</div>
-                <div class="stat-label">빠른 응답</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">🔒</div>
-                <div class="stat-label">보안 강화</div>
-            </div>
-        </div>
-
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>자동 조정</h3>
-                <p>서버 규칙 위반을 자동으로 감지하고 조치합니다. 욕설 필터링, 스팸 방지, 자동 경고 시스템으로 건강한 커뮤니티를 유지하세요.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">🚫</div>
-                <h3>블랙리스트 시스템</h3>
-                <p>문제 사용자를 자동으로 차단하고 관리자에게 알림을 전송합니다. 블랙리스트 사용자가 서버 참가 시 즉시 킥 처리됩니다.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">💬</div>
-                <h3>금지어 필터</h3>
-                <p>대시보드에서 금지어를 설정하면 자동으로 메시지를 삭제하고 경고합니다. 깨끗한 채팅 환경을 유지하세요.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">👋</div>
-                <h3>환영 메시지</h3>
-                <p>새로운 멤버를 자동으로 환영하고 서버 규칙을 안내합니다. 맞춤형 환영 메시지로 친근한 첫인상을 만들어보세요.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">👤</div>
-                <h3>퇴장 알림</h3>
-                <p>멤버가 서버를 떠날 때 자동으로 알림을 전송합니다. 누가 언제 떠났는지 쉽게 추적할 수 있습니다.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">🎟️</div>
-                <h3>티켓 시스템</h3>
-                <p>버튼 클릭으로 간편하게 1:1 문의 채널을 생성합니다. 체계적인 고객 지원이 가능합니다.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">📢</div>
-                <h3>공지 시스템</h3>
-                <p>대시보드에서 직접 공지를 작성하고 전송할 수 있습니다. @everyone 멘션 옵션도 제공됩니다.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">⚙️</div>
-                <h3>웹 대시보드</h3>
-                <p>Discord로 로그인하여 브라우저에서 모든 설정을 관리하세요. 명령어 없이도 쉽게 봇을 제어할 수 있습니다.</p>
-            </div>
-        </div>
-
-        <div class="about-section">
-            <h2>ModuCore 봇에 대하여</h2>
-            <p>
-                ModuCore 디스코드 봇은 서버 관리자들이 더 효율적으로 커뮤니티를 운영할 수 있도록 설계되었습니다.
-                블랙리스트 관리, 금지어 필터링, 자동 환영/퇴장 메시지, 티켓 시스템, 공지 전송 등 
-                모든 기능을 웹 대시보드에서 간편하게 설정할 수 있습니다. 
-                Discord OAuth2로 로그인하면 관리자 권한이 있는 서버만 표시되며, 
-                안전하고 직관적인 인터페이스로 누구나 쉽게 사용할 수 있습니다. 
-                지금 바로 봇을 추가하고 더 나은 서버 관리 경험을 시작해보세요!
-            </p>
-        </div>
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo"><span class="nav-logo-icon">🎬</span><span class="nav-logo-text">Rich Presence</span></a>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">기능</a>
+        <a href="#how-it-works" class="nav-link">사용법</a>
+        <a href="#download" class="nav-link nav-link-cta">다운로드</a>
+      </div>
     </div>
+  </nav>
 
-    <footer>
-        <p>&copy; 2024 ModuCore 디스코드 봇. All rights reserved.</p>
-        <p style="margin-top: 10px; font-size: 0.9rem;">
-            <a href="https://plugmarket.r-e.kr/dashboard" style="color: var(--accent); text-decoration: none;">대시보드</a> | 
-            <a href="https://discord.gg/3seUq2seUQ" style="color: var(--accent); text-decoration: none;">지원 서버</a>
-        </p>
-    </footer>
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"><div class="hero-glow hero-glow-1"></div><div class="hero-glow hero-glow-2"></div></div>
+    <div class="hero-content">
+      <div class="hero-badge"><span class="badge-dot"></span><span>Discord Rich Presence</span></div>
+      <h1 class="hero-title">YouTube 시청을<br><span class="gradient-text">Discord에 표시</span>하세요</h1>
+      <p class="hero-description">시청 중인 영상의 제목, 채널명, 진행 시간이 Discord 프로필에 실시간으로 표시됩니다.</p>
+      <div class="hero-buttons">
+        <a href="#download" class="btn btn-primary">무료 다운로드</a>
+        <a href="#how-it-works" class="btn btn-secondary">사용법 보기 →</a>
+      </div>
+    </div>
+    <div class="hero-preview">
+      <div class="discord-card">
+        <div class="discord-card-header">YOUTUBE 시청 중</div>
+        <div class="discord-card-body">
+          <div class="discord-card-image">▶</div>
+          <div class="discord-card-info">
+            <div class="discord-title">재미있는 영상 제목</div>
+            <div class="discord-detail">인기 유튜버 채널</div>
+            <div class="discord-time"><span id="discord-demo-time">02:30</span> / 10:15</div>
+          </div>
+        </div>
+        <div class="discord-card-footer"><div class="discord-progress"><div class="discord-progress-fill" id="discord-demo-progress"></div></div></div>
+      </div>
+    </div>
+  </section>
 
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        const html = document.documentElement;
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Features</span>
+        <h2 class="section-title">강력한 기능</h2>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-animate>
+          <div class="feature-icon">⏱️</div>
+          <h3 class="feature-title">실시간 업데이트</h3>
+          <p class="feature-description">영상 제목, 채널명, 진행 시간이 3초마다 자동으로 업데이트됩니다.</p>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon">🔒</div>
+          <h3 class="feature-title">안전한 설계</h3>
+          <p class="feature-description">개인 정보를 수집하지 않습니다. 영상 데이터는 로컬에서만 처리됩니다.</p>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon">💻</div>
+          <h3 class="feature-title">시스템 트레이</h3>
+          <p class="feature-description">백그라운드에서 조용히 실행됩니다. 시스템 트레이에서 상태를 확인하세요.</p>
+        </div>
+        <div class="feature-card" data-animate>
+          <div class="feature-icon">🔧</div>
+          <h3 class="feature-title">자동 감지</h3>
+          <p class="feature-description">YouTube 영상을 열면 자동으로 감지됩니다. 수동 설정이 필요 없습니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        updateIcons(savedTheme);
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Guide</span>
+        <h2 class="section-title">3단계로 시작하세요</h2>
+      </div>
+      <div class="steps">
+        <div class="step" data-animate>
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3 class="step-title">데스크톱 앱 설치</h3>
+            <p class="step-description">Rich Presence 데스크톱 앱을 다운로드하고 실행하세요.</p>
+          </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-animate>
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3 class="step-title">Chrome 확장 프로그램 설치</h3>
+            <p class="step-description">확장 프로그램을 설치하고 YouTube 감지를 활성화하세요.</p>
+          </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-animate>
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3 class="step-title">YouTube 시청 시작!</h3>
+            <p class="step-description">Discord를 열고 YouTube에서 영상을 재생하면, 프로필에 자동으로 표시됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateIcons(newTheme);
-        });
+  <!-- Download -->
+  <section class="download" id="download">
+    <div class="section-container">
+      <div class="download-content">
+        <div class="download-glow"></div>
+        <h2 class="download-title">지금 시작하세요</h2>
+        <p class="download-description">무료로 다운로드하고, Discord 프로필을 업그레이드하세요.</p>
+        <div class="download-cards">
+          <div class="download-card" data-animate>
+            <div class="download-card-icon">💻</div>
+            <h3 class="download-card-title">데스크톱 앱</h3>
+            <p class="download-card-desc">Windows용 (EXE)</p>
+            <a href="#" class="btn btn-primary download-btn">다운로드</a>
+          </div>
+          <div class="download-card" data-animate>
+            <div class="download-card-icon">🧩</div>
+            <h3 class="download-card-title">Chrome 확장</h3>
+            <p class="download-card-desc">Chrome 브라우저용</p>
+            <a href="#" class="btn btn-outline download-btn">설치하기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        function updateIcons(theme) {
-            if (theme === 'dark') {
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            } else {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            }
-        }
-    </script>
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <span class="footer-logo">🎬 Rich Presence</span>
+      <span class="footer-copyright">© 2025 Rich Presence. Made with ❤️</span>
+    </div>
+  </footer>
+  <script src="script.js"></script>
 </body>
 </html>
